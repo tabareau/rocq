@@ -8,12 +8,13 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
-From Corelib Require Import BinNums IntDef Uint63Axioms.
+From Corelib Require Import Prelude BinNums IntDef Uint63Axioms.
 From Corelib Require Import SpecFloat PrimFloat FloatOps.
 
 (** * Properties of the primitive operators for the Binary64 format *)
 
 Notation valid_binary := (valid_binary prec emax).
+
 
 Definition SF64classify := SFclassify prec.
 Definition SF64mul := SFmul prec emax.
@@ -39,9 +40,9 @@ Qed.
 Axiom opp_spec : forall x, Prim2SF (-x)%float = SFopp (Prim2SF x).
 Axiom abs_spec : forall x, Prim2SF (abs x) = SFabs (Prim2SF x).
 
-Axiom eqb_spec : forall x y, (x =? y)%float = SFeqb (Prim2SF x) (Prim2SF y).
-Axiom ltb_spec : forall x y, (x <? y)%float = SFltb (Prim2SF x) (Prim2SF y).
-Axiom leb_spec : forall x y, (x <=? y)%float = SFleb (Prim2SF x) (Prim2SF y).
+Axiom eqb_spec : forall x y, ((x =? y)%float : bool) = SFeqb (Prim2SF x) (Prim2SF y).
+Axiom ltb_spec : forall x y, ((x <? y)%float : bool) = SFltb (Prim2SF x) (Prim2SF y).
+Axiom leb_spec : forall x y, ((x <=? y)%float : bool) = SFleb (Prim2SF x) (Prim2SF y).
 
 Definition flatten_cmp_opt c :=
   match c with
@@ -53,7 +54,7 @@ Definition flatten_cmp_opt c :=
 Axiom compare_spec : forall x y, (x ?= y)%float = flatten_cmp_opt (SFcompare (Prim2SF x) (Prim2SF y)).
 
 Module Leibniz.
-Axiom eqb_spec : forall x y, Leibniz.eqb x y = true <-> x = y.
+Axiom eqb_spec : forall x y, (Leibniz.eqb x y : bool) = true <-> x = y.
 End Leibniz.
 
 Axiom classify_spec : forall x, classify x = SF64classify (Prim2SF x).

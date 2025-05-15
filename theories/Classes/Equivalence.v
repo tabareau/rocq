@@ -32,6 +32,9 @@ Local Open Scope signature_scope.
 
 Definition equiv `{Equivalence A R} : relation A := R.
 
+Arguments equiv {A} R {H} x y : rename.
+
+(** Overloaded notation for equivalence. *)
 (** Overloaded notations for setoid equivalence and inequivalence.
     Not to be confused with [eq] and [=]. *)
 
@@ -54,13 +57,13 @@ Infix "=~=" := pequiv (at level 70, no associativity) : equiv_scope.
 (** Shortcuts to make proof search easier. *)
 
 #[global]
- Program Instance equiv_reflexive `(sa : Equivalence A) : Reflexive equiv | 1.
+ Program Instance equiv_reflexive `(sa : Equivalence A) : Reflexive (equiv R) | 1.
 
 #[global]
-Program Instance equiv_symmetric `(sa : Equivalence A) : Symmetric equiv | 1.
+Program Instance equiv_symmetric `(sa : Equivalence A) : Symmetric (equiv R) | 1.
 
 #[global]
-Program Instance equiv_transitive `(sa : Equivalence A) : Transitive equiv | 1.
+Program Instance equiv_transitive `(sa : Equivalence A) : Transitive (equiv R) | 1.
 
   Next Obligation.
   Proof.

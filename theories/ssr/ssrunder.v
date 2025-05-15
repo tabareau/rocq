@@ -24,27 +24,26 @@ Require Import ssrclasses.
 Module Type UNDER_REL.
 Parameter Under_rel :
   forall (A : Type) (eqA : A -> A -> Prop), A -> A -> Prop.
-Parameter Under_rel_from_rel :
-  forall (A : Type) (eqA : A -> A -> Prop) (x y : A),
-    @Under_rel A eqA x y -> eqA x y.
-Parameter Under_relE :
-  forall (A : Type) (eqA : A -> A -> Prop),
-    @Under_rel A eqA = eqA.
-
+Parameter Under_rel_from_rel@{u} :
+  forall (A : Type@{u}) (eqA : A -> A -> Prop) (x y : A),
+    @Under_rel@{u} A eqA x y -> eqA x y.
+Parameter Under_relE@{u} :
+  forall (A : Type@{u}) (eqA : A -> A -> Prop),
+    @Under_rel@{u} A eqA = eqA.
 (** [Over_rel, over_rel, over_rel_done]: for "by rewrite over_rel" *)
 Parameter Over_rel :
   forall (A : Type) (eqA : A -> A -> Prop), A -> A -> Prop.
-Parameter over_rel :
-  forall (A : Type) (eqA : A -> A -> Prop) (x y : A),
-    @Under_rel A eqA x y = @Over_rel A eqA x y.
-Parameter over_rel_done :
-  forall (A : Type) (eqA : A -> A -> Prop) (EeqA : Reflexive eqA) (x : A),
-    @Over_rel A eqA x x.
+Parameter over_rel@{u} :
+  forall (A : Type@{u}) (eqA : A -> A -> Prop) (x y : A),
+    @Under_rel@{u} A eqA x y = @Over_rel@{u} A eqA x y.
+Parameter over_rel_done@{u} :
+  forall (A : Type@{u}) (eqA : A -> A -> Prop) (EeqA : Reflexive eqA) (x : A),
+    @Over_rel@{u} A eqA x x.
 
 (** [under_rel_done]: for Ltac-style over *)
-Parameter under_rel_done :
-  forall (A : Type) (eqA : A -> A -> Prop) (EeqA : Reflexive eqA) (x : A),
-    @Under_rel A eqA x x.
+Parameter under_rel_done@{u} :
+  forall (A : Type@{u}) (eqA : A -> A -> Prop) (EeqA : Reflexive eqA) (x : A),
+    @Under_rel@{u} A eqA x x.
 Notation "''Under[' x ]" := (@Under_rel _ _ x _)
   (at level 8, format "''Under['  x  ]", only printing).
 End UNDER_REL.

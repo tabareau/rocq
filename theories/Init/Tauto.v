@@ -10,6 +10,7 @@
 
 (** * The tauto and intuition tactics *)
 
+Require Import PreludeOptions.
 Require Import Notations.
 Require Import Ltac.
 Require Import Datatypes.

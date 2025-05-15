@@ -17,6 +17,7 @@
    Institution: LRI, CNRS UMR 8623 - University Paris Sud
 *)
 
+Require Export Corelib.Init.Prelude.
 Require Export Corelib.Classes.Init.
 Require Import Corelib.Program.Basics.
 Require Import Corelib.Program.Tactics.
@@ -167,6 +168,7 @@ Section Defs.
    it will assign `?A := Prop, ?R := iff` on an entirely unspecified query
    `RewriteRelation ?A ?R`, or any prefered rewrite relation of priority < 2. *)
 
+  #[projections(primitive=no)]
   Class RewriteRelation (RA : relation A).
 
   (** Leibniz equality. *)
@@ -503,8 +505,8 @@ Section Binary.
   Global Instance partial_order_antisym `(PartialOrder eqA R) : Antisymmetric A eqA R.
   Proof with auto.
     reduce_goal.
-    pose proof partial_order_equivalence as poe. do 3 red in poe.
-    apply <- poe. firstorder.
+    epose proof partial_order_equivalence as poe. do 3 red in poe.
+    apply <- poe. split; eauto. Unshelve. all: eauto.
   Qed.
 
 

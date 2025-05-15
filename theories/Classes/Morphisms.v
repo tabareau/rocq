@@ -535,10 +535,12 @@ Section GenericInstances.
   
 End GenericInstances.
 
+#[projections(primitive=no)]
 Class PartialApplication.
 
 CoInductive normalization_done : Prop := did_normalization.
 
+#[projections(primitive=no)]
 Class Params {A : Type} (of : A) (arity : nat).
 #[global] Instance eq_pars : Params (@eq) 1 := {}.
 #[global] Instance iff_pars : Params (@iff) 0 := {}.
@@ -730,9 +732,8 @@ intros.
 apply proper_sym_impl_iff_2. 1-2: auto with relations.
 intros x x' Hx y y' Hy Hr.
 transitivity x.
-- generalize (partial_order_equivalence x x'); compute; intuition.
-- transitivity y; auto.
-  generalize (partial_order_equivalence y y'); compute; intuition.
+- apply H, Hx.
+- transitivity y; auto. apply H, symmetry, Hy.
 Qed.
 
 (** From a [PartialOrder] to the corresponding [StrictOrder]:
@@ -748,7 +749,7 @@ split; compute.
   + apply PreOrder_Transitive with y; assumption.
   + intro Hxz.
     apply Hxy'.
-    apply partial_order_antisym; auto.
+    eapply partial_order_antisym; eauto.
     eapply PartialOrder_proper; eauto.
     apply reflexivity.
 Qed.
@@ -781,9 +782,14 @@ Lemma StrictOrder_PartialOrder
   `(Equivalence A eqA, StrictOrder A R, Proper _ (eqA==>eqA==>iff) R) :
   PartialOrder eqA (relation_disjunction R eqA).
 Proof.
-intros. intros x y. compute. intuition auto with relations.
-elim (StrictOrder_Irreflexive x).
-transitivity y; auto.
+intros. intros x y. split.
+- intros heq. split. right; apply heq.
+  unfold flip. right; apply symmetry, heq.
+- unfold flip. intros [[l|l] [r|r]].
+  * destruct (StrictOrder_Irreflexive x (transitivity l r)).
+  * eapply symmetry, r.
+  * eapply l.
+  * eapply l.
 Qed.
 
 #[global]

@@ -15,6 +15,7 @@
 
 Set Implicit Arguments.
 
+Require Import PreludeOptions.
 Require Import Notations.
 Require Import Ltac.
 Require Import Logic.

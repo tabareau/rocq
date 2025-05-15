@@ -33,6 +33,7 @@ Unset Strict Implicit.
    the relation to use on a given type, in a given context.
    *)
 
+#[projections(primitive=no)]
 Class DefaultRelation A (R : relation A).
 Register DefaultRelation as rewrite.DefaultRelation.
 

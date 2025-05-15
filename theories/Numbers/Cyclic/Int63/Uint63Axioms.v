@@ -25,6 +25,8 @@ Local Infix "^" := Z.pow : Z_scope.
 Local Infix "<=" := Z.le : Z_scope.
 Local Infix "<" := Z.lt : Z_scope.
 Local Notation "x <= y < z" := (x <= y /\ y < z) : Z_scope.
+Local Notation "'false'" := falsePrim.
+Local Notation "'true'" := truePrim.
 
 Definition size := 63%nat.
 
@@ -159,7 +161,7 @@ Definition subcarryc_def x y :=
 
 Axiom subcarryc_def_spec : forall x y, subcarryc x y = subcarryc_def x y.
 
-Definition diveucl_def x y := (div x y, PrimInt63.mod x y).
+Definition diveucl_def x y := pairPrim (div x y) (PrimInt63.mod x y).
 
 Axiom diveucl_def_spec : forall x y, diveucl x y = diveucl_def x y.
 

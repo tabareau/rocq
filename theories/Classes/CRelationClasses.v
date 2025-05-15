@@ -187,6 +187,7 @@ Section Defs.
    crelations. This is also done automatically by the [Declare Relation A RA]
    commands. *)
 
+  #[projections(primitive=no)]
   Class RewriteRelation (RA : crelation A).
 
   (** Any [Equivalence] declared in the context is automatically considered

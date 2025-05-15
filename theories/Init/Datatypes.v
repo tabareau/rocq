@@ -10,6 +10,7 @@
 
 Set Implicit Arguments.
 
+Require Import PreludeOptions.
 Require Import Notations.
 Require Import Ltac.
 Require Import Logic.
@@ -194,11 +195,9 @@ Register S as num.nat.S.
 (********************************************************************)
 (** * Container datatypes *)
 
-(* Set Universe Polymorphism. *)
 
 (** [option A] is the extension of [A] with an extra element [None] *)
 
-#[universes(template)]
 Inductive option (A:Type) : Type :=
   | Some : A -> option A
   | None : option A.
@@ -218,7 +217,6 @@ Definition option_map (A B:Type) (f:A->B) (o : option A) : option B :=
 
 (** [sum A B], written [A + B], is the disjoint sum of [A] and [B] *)
 
-#[universes(template)]
 Inductive sum (A B:Type) : Type :=
   | inl : A -> sum A B
   | inr : B -> sum A B.
@@ -235,7 +233,7 @@ Register inr as core.sum.inr.
 (** [prod A B], written [A * B], is the product of [A] and [B];
     the pair [pair A B a b] of [a] and [b] is abbreviated [(a,b)] *)
 
-#[universes(template)]
+#[universes(template),universes(polymorphic=no)]
 Inductive prod (A B:Type) : Type :=
   pair : A -> B -> A * B
 
@@ -305,7 +303,6 @@ Defined.
 
 (** Polymorphic lists and some operations *)
 
-#[universes(template)]
 Inductive list (A : Type) : Type :=
  | nil : list A
  | cons : A -> list A -> list A.
@@ -343,11 +340,10 @@ Definition app (A : Type) : list A -> list A -> list A :=
 
 Infix "++" := app (right associativity, at level 60) : list_scope.
 
-(* Unset Universe Polymorphism. *)
-
 (********************************************************************)
 (** * The comparison datatype *)
 
+#[universes(polymorphic=no)]
 Inductive comparison : Set :=
   | Eq : comparison
   | Lt : comparison

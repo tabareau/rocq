@@ -7,12 +7,12 @@
 (*         *     GNU Lesser General Public License Version 2.1          *)
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
-(*            Benjamin Gregoire, Laurent Thery, INRIA, 2007             *)
-(************************************************************************)
 
-Set Implicit Arguments.
-
-#[universes(polymorphic=no)]
-Variant carry (A : Type) :=
-| C0 : A -> carry A
-| C1 : A -> carry A.
+#[export] Set Typeclasses Unique Instances.
+#[export] Set Universe Polymorphism.
+#[export] Set Polymorphic Inductive Cumulativity.
+#[export] Unset Auto Template Polymorphism.
+#[export] Set Universe Minimization ToSet.
+#[export] Set Primitive Projections.
+#[export] Set Printing Coercions.
+#[export] Set Typeclasses Default Mode "!".

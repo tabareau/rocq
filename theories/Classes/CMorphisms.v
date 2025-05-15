@@ -14,6 +14,7 @@
    Institution: LRI, CNRS UMR 8623 - University Paris Sud
 *)
 
+Require Export Corelib.Init.Prelude.
 Require Import Corelib.Program.Basics.
 Require Import Corelib.Program.Tactics.
 Require Export Corelib.Classes.CRelationClasses.
@@ -450,6 +451,7 @@ Section GenericInstances.
     Proper R' (m x).
   Proof. simpl_crelation. Qed.
   
+  #[projections(primitive=no)]
   Class Params {A} (of : A) (arity : nat).
 
   Lemma flip_respectful {A B} (R : crelation A) (R' : crelation B) :
@@ -492,6 +494,7 @@ End GenericInstances.
 
 Set Printing Universes.
 
+#[projections(primitive=no)]
 Class PartialApplication.
 
 CoInductive normalization_done : Prop := did_normalization.
@@ -690,9 +693,8 @@ intros.
 apply proper_sym_arrow_iffT_2. 1-2: typeclasses eauto.
 intros x x' Hx y y' Hy Hr.
 apply transitivity with x.
-- generalize (partial_order_equivalence x x'); compute; intuition.
-- apply transitivity with y; auto.
-  generalize (partial_order_equivalence y y'); compute; intuition.
+- apply H, symmetry, Hx.
+- apply transitivity with y; auto. apply H, Hy.
 Qed.
 
 (** From a [PartialOrder] to the corresponding [StrictOrder]:
@@ -708,8 +710,8 @@ split; compute.
     + apply PreOrder_Transitive with y; assumption.
     + intro Hxz.
     apply Hxy'.
-    apply partial_order_antisym; auto.
-    apply transitivity with z; [assumption|].
+    eapply partial_order_antisym; eauto.
+    eapply transitivity with z; [assumption|].
     now apply H.
 Qed.
 
@@ -738,11 +740,14 @@ Lemma StrictOrder_PartialOrder
     `(Equivalence A eqA, StrictOrder A R, H1 : Proper _ (eqA==>eqA==>iffT) R) :
     @PartialOrder _ eqA _ (relation_disjunction R eqA) (StrictOrder_PreOrder _ _ H1).
 Proof.
-intros. intros x y. compute. intuition auto.
-- right; now apply symmetry.
-- elim (StrictOrder_Irreflexive x).
-  eapply transitivity with y; eauto.
-- now apply symmetry.
+intros. intros x y. split.
+- intros heq. split. right; apply heq.
+  unfold flip. right; apply symmetry, heq.
+- unfold flip. intros [[l|l] [r|r]].
+  * destruct (StrictOrder_Irreflexive x (transitivity _ l r)).
+  * eapply symmetry, r.
+  * eapply l.
+  * eapply l.
 Qed.
 
 #[global]

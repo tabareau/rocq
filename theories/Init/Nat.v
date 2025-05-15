@@ -8,6 +8,7 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
+Require Import PreludeOptions.
 Require Import Notations Logic Datatypes.
 Require Decimal Hexadecimal Number.
 Local Open Scope nat_scope.

@@ -8,10 +8,48 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
+Require Import Prelude.
 Require Export CarryType.
 
-Register bool as kernel.ind_bool.
-Register prod as kernel.ind_pair.
+(* We use non sort/univ poly definition for bool and prod to get an efficient representation in memory *)
+
+#[universes(polymorphic=no)]
+Inductive boolPrim : Set := truePrim | falsePrim.
+
+#[universes(polymorphic=no)]
+Record prodPrim (A B : Type) : Type := pairPrim { fstPrim : A ; sndPrim : B}.
+
+Arguments fstPrim {_ _}.
+Arguments sndPrim {_ _}.
+Arguments pairPrim {_ _}.
+
+(* We introduce coercions to sort poly def to be able to use generic lemmas *)
+
+Definition bool_of_boolPrim : boolPrim -> bool :=
+  fun b => if b then true else false.
+
+Coercion bool_of_boolPrim : boolPrim >-> bool.
+
+Definition boolPrim_of_bool : bool -> boolPrim :=
+  fun b => if b then truePrim else falsePrim.
+
+(* Coercion boolPrim_of_bool : bool >-> boolPrim *)
+
+Definition sigmaR_of_prodPrim A B : prodPrim A B -> prod A B :=
+  fun p => (fstPrim p , sndPrim p).
+
+Coercion sigmaR_of_prodPrim : prodPrim >-> prod.
+
+Definition prod_of_prodPrim A B : prodPrim A B -> prod A B :=
+  fun p => (fstPrim p , sndPrim p).
+
+Coercion prod_of_prodPrim : prodPrim >-> prod.
+
+(* Register data types used by primitive operations *)
+
+Register boolPrim as kernel.ind_bool.
+Register prodPrim as kernel.ind_pair.
+
 Register carry as kernel.ind_carry.
 Register comparison as kernel.ind_cmp.
 

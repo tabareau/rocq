@@ -8,7 +8,8 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
-Require Export Notations.
+Require Export Corelib.Init.PreludeOptions.
+Require Export Corelib.Init.Notations.
 Require Export Logic.
 Require Export Datatypes.
 Require Export Specif.

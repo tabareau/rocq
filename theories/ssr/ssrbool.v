@@ -12,6 +12,8 @@
 
 (** #<style> .doc { font-family: monospace; white-space: pre; } </style># **)
 
+Require Import Corelib.Init.Prelude.
+
 Require Import ssreflect ssrfun.
 
 (**
@@ -293,7 +295,6 @@ Require Import ssreflect ssrfun.
    T or t -- boolean truth, as in andbT: right_id true andb.
    U -- predicate union, as in predU.
    W -- weakening, as in in1W : (forall x, P) -> {in D, forall x, P}.        **)
-
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -765,7 +766,6 @@ Hint View for apply// equivPif|3 xorPif|3 equivPifn|3 xorPifn|3.
 (**  Allow the direct application of a reflection lemma to a boolean assertion.  **)
 Coercion elimT : reflect >-> Funclass.
 
-#[universes(template)]
 Variant implies P Q := Implies of P -> Q.
 Lemma impliesP P Q : implies P Q -> P -> Q. Proof. by case. Qed.
 Lemma impliesPn (P Q : Prop) : implies P Q -> ~ Q -> ~ P.
@@ -909,7 +909,7 @@ Arguments all_and3 {T P1 P2 P3}.
 Arguments all_and4 {T P1 P2 P3 P4}.
 Arguments all_and5 {T P1 P2 P3 P4 P5}.
 
-Lemma pair_andP P Q : P /\ Q <-> P * Q. Proof. by split; case. Qed.
+Lemma pair_andP (P Q:Prop) : P /\ Q <-> (prod P Q:Prop). Proof. by split; case. Qed.
 
 Section ReflectConnectives.
 
@@ -1266,6 +1266,7 @@ Notation xpreim := (fun f (p : pred _) x => p (f x)).
 
 (** The packed class interface for pred-like types. **)
 
+#[projections(primitive=no)]
 Structure predType T :=
    PredType {pred_sort :> Type; topred : pred_sort -> pred T}.
 
@@ -1348,7 +1349,8 @@ Coercion pred_of_simpl : simpl_pred >-> pred.
 Canonical simplPredType T := PredType (@pred_of_simpl T).
 
 Module Type PredSortOfSimplSignature.
-Parameter coerce : forall T, simpl_pred T -> {pred T}.
+Parameter coerce@{u} : forall (T:Type@{u}), simpl_pred@{u} T ->
+   @pred_sort@{u u} T (predPredType T).
 End PredSortOfSimplSignature.
 Module DeclarePredSortOfSimpl (PredSortOfSimpl : PredSortOfSimplSignature).
 Coercion PredSortOfSimpl.coerce : simpl_pred >-> pred_sort.
@@ -1551,6 +1553,7 @@ Implicit Types (mp : mem_pred T).
    Definition Acoll : collective_pred T := [pred x | ...].
  as the collective_pred_of_simpl is _not_ convertible to pred_of_simpl.  **)
 
+ #[projections(primitive=no)]
 Structure registered_applicative_pred p := RegisteredApplicativePred {
   applicative_pred_value :> pred T;
   _ : applicative_pred_value = p
@@ -1559,12 +1562,14 @@ Definition ApplicativePred p := RegisteredApplicativePred (erefl p).
 Canonical applicative_pred_applicative sp :=
   ApplicativePred (applicative_pred_of_simpl sp).
 
+#[projections(primitive=no)]
 Structure manifest_simpl_pred p := ManifestSimplPred {
   simpl_pred_value :> simpl_pred T;
   _ : simpl_pred_value = SimplPred p
 }.
 Canonical expose_simpl_pred p := ManifestSimplPred (erefl (SimplPred p)).
 
+#[projections(primitive=no)]
 Structure manifest_mem_pred p := ManifestMemPred {
   mem_pred_value :> mem_pred T;
   _ : mem_pred_value = Mem [eta p]
@@ -1657,6 +1662,7 @@ Variable T : Type.
 Variant pred_key (p : {pred T}) : Prop := DefaultPredKey.
 
 Variable p : {pred T}.
+#[projections(primitive=no)]
 Structure keyed_pred (k : pred_key p) :=
   PackKeyedPred {unkey_pred :> {pred T}; _ : unkey_pred =i p}.
 
@@ -1688,6 +1694,7 @@ Section KeyedQualifier.
 
 Variables (T : Type) (n : nat) (q : qualifier n T).
 
+#[projections(primitive=no)]
 Structure keyed_qualifier (k : pred_key q) :=
   PackKeyedQualifier {unkey_qualifier; _ : unkey_qualifier = q}.
 Definition KeyedQualifier k := PackKeyedQualifier k (erefl q).

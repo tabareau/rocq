@@ -382,7 +382,6 @@ Lemma unitE : all_equal_to tt. Proof. by case. Qed.
 
 (**  A generic wrapper type  **)
 
-#[universes(template)]
 Structure wrapped T := Wrap {unwrap : T}.
 Canonical wrap T x := @Wrap T x.
 
@@ -399,7 +398,6 @@ Notation "@^~ x" := (fun f => f x) : function_scope.
  Definitions and notation for explicit functions with simplification,
  i.e., which simpl and /= beta expand (this is complementary to nosimpl).  **)
 
-#[universes(template)]
 Variant simpl_fun (aT rT : Type) := SimplFun of aT -> rT.
 
 Section SimplFun.

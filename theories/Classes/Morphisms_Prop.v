@@ -91,8 +91,8 @@ Instance Acc_pt_morphism {A:Type}(E R : A->A->Prop)
 Proof.
   apply proper_sym_impl_iff.
   - auto with relations.
-  - intros x y EQ WF. apply Acc_intro; intros z Hz.
-    rewrite <- EQ in Hz. now apply Acc_inv with x.
+  - intros x y EQ WF. apply Acc_intro; intros z Hz. assert (R z x). specialize (H0 z z (reflexivity _) _ _ EQ). destruct H0. eauto.
+    apply Acc_inv with x; assumption.
 Qed.
 
 (** Equivalent relations have the same accessible points *)

@@ -25,6 +25,7 @@
    Case analysis on [nat] and induction on [nat * nat] are provided too
  *)
 
+Require Import PreludeOptions.
 Require Import Notations.
 Require Import Ltac.
 Require Import Datatypes.
