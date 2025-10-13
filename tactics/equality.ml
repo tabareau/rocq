@@ -34,7 +34,6 @@ open Tacred
 open Rocqlib
 open Declarations
 open Ind_tables
-open Eqschemes
 open Locus
 open Locusops
 open Tactypes
@@ -312,18 +311,6 @@ let general_elim_clause with_evars frzevars tac cls c (ctx, eqn, args) l l2r eli
 let (forward_general_setoid_rewrite_clause, general_setoid_rewrite_clause) = Hook.make ()
 
 (* scheme_name returns the generic elimination principle to be used, dependending on dep(endency), in conclusion or not and left-to-right *)
-let scheme_name dep lft2rgt inccl =
-  match dep, lft2rgt, inccl with
-    (* Non dependent case *)
-    | false, Some true, true -> rew_l2r_scheme_kind
-    | false, Some true, false -> rew_r2l_scheme_kind
-    | false, _, false -> rew_l2r_scheme_kind
-    | false, _, true -> rew_r2l_scheme_kind
-    (* Dependent case *)
-    | true, Some true, true -> rew_l2r_dep_scheme_kind
-    | true, Some true, false -> rew_l2r_forward_dep_scheme_kind
-    | true, _, true -> rew_r2l_dep_scheme_kind
-    | true, _, false -> rew_r2l_forward_dep_scheme_kind
 
 (* has_J_ref returns the name of the class to be used, dependending on dep(endency), in conclusion or not and left-to-right *)
 (* The integer encodes the position of the equality argument in the elimination principle, starting from 0 *)
@@ -406,7 +393,10 @@ let eq_eliminator env sigma eq ?(dep=false) ?(inccl=true) l2r ~c_quality ~e_qual
     let c_name , _ = Constr.destConst (EConstr.to_constr sigma hd) in
     let c = Reductionops.whd_const c_name env sigma c in
     Some ((sigma , c), indarg)
-  with Not_found -> None
+  with Not_found -> user_err Pp.(
+      str"Eliminator not found for equality in sort: " ++ Sorts.Quality.raw_pr e_quality ++
+      str" carrier quality: " ++ Sorts.Quality.raw_pr c_quality ++
+      str" target quality: " ++ Sorts.Quality.raw_pr p_quality)
 
 (* find_elim determines which elimination principle is necessary to
    eliminate lbeq on sort_of_gl. *)
@@ -416,17 +406,6 @@ let find_elim lft2rgt dep cls (ctx, hdcncl, args) =
   let env = Proofview.Goal.env gl in
   let sigma = Proofview.Goal.sigma gl in
   let inccl = Option.is_empty cls in
-  let gen_elim =
-     match EConstr.kind sigma hdcncl with
-    | Ind (ind,u) ->
-      find_scheme (scheme_name dep lft2rgt inccl) ind >>= fun elim ->
-      (* env may have been modified by find_scheme *)
-      Proofview.tclEVARMAP >>= fun sigma ->
-      Proofview.tclENV >>= fun env ->
-      let (sigma, (c,u)) = Evd.fresh_constant_instance env sigma elim in
-      Proofview.Unsafe.tclEVARS sigma <*> Proofview.tclUNIT (mkConstU (c,u), UnknownPosition)
-    | _ -> assert false
-  in
   (* avoid to check instance for non homogenous equality types *)
   if List.length args = 3
   then
@@ -446,9 +425,28 @@ let find_elim lft2rgt dep cls (ctx, hdcncl, args) =
     match eq_eliminator env sigma hdcncl ~dep ~inccl lft2rgt ~c_quality ~e_quality ~p_quality with
     | Some ((sigma, c),indarg) ->
         Proofview.Unsafe.tclEVARS sigma <*> Proofview.tclUNIT (c,indarg)
-    | None -> gen_elim
+    | None ->  user_err Pp.(
+      str"Eliminator not found for equality in sort: " ++ Sorts.Quality.raw_pr e_quality ++
+      str" carrier quality: " ++ Sorts.Quality.raw_pr c_quality ++
+      str" target quality: " ++ Sorts.Quality.raw_pr p_quality)
   else
-    gen_elim
+    let env' = EConstr.push_rel_context ctx env in
+    let args = Array.of_list args in
+    let e_quality = ESorts.quality sigma (Retyping.get_sort_of env' sigma (mkApp (hdcncl, args))) in
+    let c_quality = ESorts.quality sigma (Retyping.get_sort_of env' sigma args.(0)) in
+    let p_quality = match cls with
+      | None ->
+          ESorts.quality sigma (Retyping.get_sort_of env sigma (Proofview.Goal.concl gl))
+      | Some id -> begin
+          let hyp = mkVar id in
+          let hyp_typ = Retyping.get_type_of env sigma hyp in
+          ESorts.quality sigma (Retyping.get_sort_of env sigma hyp_typ)
+        end
+    in
+    user_err Pp.(
+      str"Eliminator not found for equality in sort: " ++ Sorts.Quality.raw_pr e_quality ++
+      str" carrier quality: " ++ Sorts.Quality.raw_pr c_quality ++
+      str" target quality: " ++ Sorts.Quality.raw_pr p_quality)
   end
 
 let type_of_clause cls gl = match cls with

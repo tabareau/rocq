@@ -22,42 +22,38 @@ Hint Variables Opaque : rewrite_instances.
 
 Local Set Universe Polymorphism.
 
-Class Has_refl@{sa se;la le} (eq : forall A : Type@{sa;la}, A -> A -> Type@{se;le})
-:= refl : forall A x, eq A x x.
+Class Has_refl@{sa se;la le} (A : Type@{sa ; la}) (x : A) (eq : A -> Type@{se;le})
+:= refl : eq x.
+
+Arguments refl {_ _} _ {_}.
 
 (* This class register a Martin-Löf like elimination principle *)
 
-Class Has_J@{sa se sp;la le lp} (eq : forall A : Type@{sa ; la}, A -> A -> Type@{se;le})
-  (Has_refl : Has_refl eq) :=
-  J_eliminator : forall (A : Type@{sa ; la}) (x : A) (P : forall y : A, eq A x y -> Type@{sp ; lp}),
-    P x (refl A x) -> forall y e, P y e.
+Class Has_J@{sa se sp;la le lp} (A : Type@{sa ; la}) (x : A) (eq : A -> Type@{se;le})
+  (Has_refl : Has_refl A x eq) :=
+  J_eliminator : forall (P : forall y : A, eq y -> Type@{sp ; lp}), P x (refl eq) -> forall y e, P y e.
 
-(* This class is for forward dependent rewriting *)
-
-Class Has_J_r@{sa se sp;la le lp} (eq : forall A : Type@{sa ; la}, A -> A -> Type@{se;le})
-  (Has_refl : Has_refl eq) :=
-  J_r_eliminator: forall (A : Type@{sa ; la}) (x : A) (P : forall y : A, eq A y x -> Type@{sp ; lp}),
-    P x (refl A x) -> forall y e, P y e.
+Class Has_J_r@{sa se sp;la le lp} (A : Type@{sa ; la}) (x : A) (eq : A -> Type@{se;le})
+  (Has_refl : Has_refl A x eq) :=
+  J_r_eliminator : forall (P : forall y : A, eq y -> Type@{sp ; lp}), forall y e, P y e -> P x (refl eq).
 
 (* Those two classes are for dependent rewriting in an hypotesis *)
 
-Class Has_J_forward@{sa se sp;la le lp} (eq : forall A : Type@{sa ; la}, A -> A -> Type@{se;le})
-  (Has_refl : Has_refl eq) :=
-  J_forward : forall (A : Type@{sa ; la}) (x : A) (P : forall y : A, eq A x y -> Type@{sp ; lp}) y e,
-    P y e -> P x (refl A x).
+Class Has_J_forward@{sa se sp;la le lp} (A : Type@{sa ; la}) (x : A) (eq : A -> Type@{se;le})
+  (Has_refl : Has_refl A x eq) :=
+  J_forward : forall (P : forall y : A, eq y -> Type@{sp ; lp}) y e, P y e -> P x (refl eq).
 
-Class Has_J_r_forward@{sa se sp;la le lp} (eq : forall A : Type@{sa ; la}, A -> A -> Type@{se;le})
-  (Has_refl : Has_refl eq) :=
-  J_r_forward : forall (A : Type@{sa ; la}) (x : A) (P : forall y : A, eq A y x -> Type@{sp ; lp}) y e,
-    P y e -> P x (refl A x).
+Class Has_J_r_forward@{sa se sp;la le lp} (A : Type@{sa ; la}) (x : A) (eq : A -> Type@{se;le})
+  (Has_refl : Has_refl A x eq) :=
+  J_r_forward : forall (P : forall y : A, eq y -> Type@{sp ; lp}) y e, P y e -> P x (refl eq).
 
 (* Those two classes are for non-dependent rewriting *)
 
-Class Has_Leibniz@{sa se sp;la le lp} (eq : forall A : Type@{sa ; la}, A -> A -> Type@{se;le}) :=
-  leibniz : forall (A : Type@{sa ; la}) (x : A) (P : A -> Type@{sp ; lp}), P x -> forall y, eq A x y -> P y.
+Class Has_Leibniz@{sa se sp;la le lp} (A : Type@{sa ; la}) (x : A) (eq : A -> Type@{se;le}) :=
+  leibniz : forall (P : A -> Type@{sp ; lp}), P x -> forall y, eq y -> P y.
 
-Class Has_Leibniz_r@{sa se sp;la le lp} (eq : forall A : Type@{sa ; la}, A -> A -> Type@{se;le}) :=
-  leibniz_r : forall (A : Type@{sa ; la}) (x : A) (P : A -> Type@{sp ; lp}), P x -> forall y, eq A y x -> P y.
+Class Has_Leibniz_r@{sa se sp;la le lp} (A : Type@{sa ; la}) (x : A) (eq : A -> Type@{se;le}) :=
+  leibniz_r : forall (P : A -> Type@{sp ; lp}) y, P y -> eq y -> P x.
 
 Register Has_refl as rocq.core.Has_refl.
 Typeclasses Opaque Has_refl.
@@ -80,23 +76,26 @@ Typeclasses Opaque Has_Leibniz.
 Register Has_Leibniz_r as rocq.core.Has_Leibniz_r.
 Typeclasses Opaque Has_Leibniz_r.
 
-Definition J_no_dep@{s s' sp;l l' lp} {eq} {refl} (eqr : Has_J@{s s' sp;l l' lp} eq refl) :
-  forall (A : Type@{s ; l}) (x : A) (P : A -> Type@{sp ; lp}), P x -> forall y (e : eq A x y), P y :=
-  fun A x P px y e => J_eliminator _ x (fun y _ => P y) px y e.
+Definition J_no_dep@{s s' sp;l l' lp} (A : Type@{s ; l}) (x : A) {eq} {refl} (eqr : Has_J@{s s' sp;l l' lp} A x eq refl) :
+  forall (P : A -> Type@{sp ; lp}), P x -> forall y (e : eq y), P y :=
+  fun P px y e => J_eliminator (fun y _ => P y) px y e.
 
-Definition Has_J_Has_Leibniz@{s s' sp;l l' lp} {eq} {refl} (eqr : Has_J@{s s' sp;l l' lp} eq refl) : Has_Leibniz@{s s' sp;l l' lp} eq :=
- fun A x P px y e => J_no_dep eqr A x P px y e.
+Definition Has_J_Has_Leibniz@{s s' sp;l l' lp} (A : Type@{s ; l}) (x : A) {eq} {refl}
+  (eqr : Has_J@{s s' sp;l l' lp} A x eq refl) : Has_Leibniz@{s s' sp;l l' lp} A x eq :=
+  fun P px y e => J_no_dep A x eqr P px y e.
 
 Section ap.
   Sort sa se sb se'.
   Universe la le lb le'.
-  Context {eq : forall A : Type@{sa;la}, A -> A -> Type@{se;le} }
-          {eq' : forall A : Type@{sb; lb}, A -> A -> Type@{se';le'} }
-          {_refl: Has_refl@{sb se';lb le'} eq'}
-          {_leibniz: Has_Leibniz@{sa se se';la le le'} eq}.
+  Context [A : Type@{sa;la}] [B:Type@{sb;lb}]
+          (f : A -> B) (x:A)
+          {eq : A -> Type@{se;le} }
+          {eq' : B -> Type@{se';le'} }
+          {_refl: Has_refl@{sb se';lb le'} B (f x) eq'}
+          {_leibniz: Has_Leibniz@{sa se se';la le le'} A x eq}.
 
-  Definition ap [A : Type@{sa;la}] [B:Type@{sb;lb}] (f : A -> B) [x y : A] (e : eq _ x y) : eq' _ (f x) (f y) :=
-    leibniz A x (fun y => eq' B (f x) (f y)) (refl _ _) y e.
+  Definition ap [y : A] (e : eq y) : eq' (f y) :=
+    leibniz (fun y => eq' (f y)) (refl eq') y e.
 
 End ap.
 
@@ -105,36 +104,24 @@ Register ap as rocq.core.ap.
 Section sym.
   Sort sa se.
   Universe la le.
-  Context {eq : forall A : Type@{sa;la}, A -> A -> Type@{se;le} }
-          {A : Type@{sa;la} }
-          {_refl: Has_refl@{sa se;la le} eq}
-          {_leibniz: Has_Leibniz@{sa se se;la le le} eq}.
+  Context {A : Type@{sa;la} } {x y :A}
+          {eq : A -> A -> Type@{se;le} }
+          {_refl: Has_refl@{sa se;la le} A x (eq x)}
+          {_leibniz: Has_Leibniz@{sa se se;la le le} A x (eq x)}.
 
-  Definition sym {x y : A} (e : eq _ x y) : eq _ y x :=
-    leibniz _ _ (fun y => eq A y _) (refl _ _) _ e.
+  Definition sym {y : A} (e : eq x y) : eq y x :=
+    leibniz (fun y => eq y _) (refl (eq x)) _ e.
 
 End sym.
 
-Definition Has_J_Has_J_forward@{sa se sp;la le lp} eq Has_refl
-  {has_J : Has_J@{sa se sp;la le lp} eq Has_refl} :
-  forall (A : Type@{sa ; la}) (x : A) (P : forall y : A, eq A x y -> Type@{sp ; lp}) y e,
-      P y e -> P x (refl A x) :=
-  fun A x P y e => J_eliminator _ _ (fun y e => P y e -> P _ _) (fun x => x) _ _.
+Definition Has_J_Has_J_forward@{sa se sp;la le lp} {A : Type@{sa;la} } {x :A} eq Has_refl
+  {has_J : Has_J@{sa se sp;la le lp} A x eq Has_refl} :
+  forall (P : forall y : A, eq y -> Type@{sp ; lp}) y e,
+      P y e -> P x (refl eq) :=
+  fun P y e => J_eliminator (fun y e => P y e -> P _ _) (fun x => x) _ _.
 
-Definition _Has_J_Has_J_forward@{sa se sp;la le lp} eq Has_refl
-  {has_J : Has_J@{sa se sp;la le lp} eq Has_refl} : Has_J_forward@{sa se sp;la le lp} eq Has_refl
+Definition _Has_J_Has_J_forward@{sa se sp;la le lp} {A : Type@{sa;la} } {x :A} eq Has_refl
+  {has_J : Has_J@{sa se sp;la le lp} A x eq Has_refl} : Has_J_forward@{sa se sp;la le lp} A x eq Has_refl
   := Has_J_Has_J_forward _ _.
 
 Hint Resolve _Has_J_Has_J_forward : rewrite_instances.
-
-Definition Has_J_r_Has_J_r_forward@{sa se sp;la le lp} eq Has_refl
-  {has_J : Has_J_r@{sa se sp;la le lp} eq Has_refl} :
-  forall (A : Type@{sa ; la}) (x : A) (P : forall y : A, eq A y x -> Type@{sp ; lp}) y e,
-      P y e -> P x (refl A x) :=
-  fun A x P y e => J_r_eliminator _ _ (fun y e => P y e -> P _ _) (fun x => x) _ _.
-
-Definition _Has_J_r_Has_J_r_forward@{sa se sp;la le lp} eq Has_refl
-  {has_J : Has_J_r@{sa se sp;la le lp} eq Has_refl} : Has_J_r_forward@{sa se sp;la le lp} eq Has_refl
-  := Has_J_r_Has_J_r_forward _ _.
-
-Hint Resolve _Has_J_r_Has_J_r_forward : rewrite_instances.

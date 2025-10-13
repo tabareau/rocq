@@ -145,6 +145,20 @@ Proof.
   intros P b H H0; destruct H0 in H; assumption.
 Defined.
 
+Lemma eq_true_ind_r_J :
+  forall (P : forall b : bool, eq_true b -> Prop) (b : bool) (e : eq_true b), P b e -> P true is_eq_true.
+Proof.
+  intros P b H0.  destruct H0. trivial.
+Defined.
+
+
+#[universes(polymorphic)]
+Instance eq_true_Has_Leibniz_Prop_elim@{l} : Has_Leibniz_r@{Prop Prop Type;Set Set l} (@eq_true)
+  := @eq_true_ind_r.
+
+Hint Resolve eq_Has_Leibniz_Prop_elim : rewrite_instances.
+
+
 Lemma eq_true_rec_r :
   forall (P : bool -> Set) (b : bool), P b -> eq_true b -> P true.
 Proof.
@@ -156,6 +170,8 @@ Lemma eq_true_rect_r :
 Proof.
   intros P b H H0; destruct H0 in H; assumption.
 Defined.
+
+
 
 (** The [BoolSpec] inductive will be used to relate a [boolean] value
     and two propositions corresponding respectively to the [true]
