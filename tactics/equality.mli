@@ -32,7 +32,7 @@ val eq_eliminator : Environ.env -> Evd.evar_map -> Evd.econstr ->
   c_quality:Sorts.Quality.t ->
   e_quality:Sorts.Quality.t ->
   p_quality:Sorts.Quality.t ->
-  ((Evd.evar_map * Evd.econstr) * equality_position_on_elim) option
+  (Evd.evar_map * Evd.econstr) * equality_position_on_elim
 
 (* Equivalent to [general_rewrite l2r] *)
 val rewriteLR : constr -> unit Proofview.tactic

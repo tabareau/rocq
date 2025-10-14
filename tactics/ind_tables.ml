@@ -260,36 +260,6 @@ match sd with
   if local_check_scheme kind (mind, 0) eff then eff
   else define_mutual_scheme kind ~internal:true [] mind eff
 
-let find_scheme kind (mind,i as ind) =
-  let open Proofview.Notations in
-  Proofview.tclEVARMAP >>= fun sigma ->
-  match local_lookup_scheme (Evd.eval_side_effects sigma) kind ind with
-  | Some s ->
-    Proofview.tclUNIT s
-  | None ->
-    let senv = Global.safe_env () in
-    try
-      match Hashtbl.find scheme_object_table kind with
-      | s,IndividualSchemeFunction (f, deps) ->
-        let env = Safe_typing.env_of_safe_env senv in
-        let deps = match deps with None -> [] | Some deps -> deps env ind in
-        let sch = empty_schemes senv in
-        let eff = List.fold_left (fun eff dep -> declare_scheme_dependence eff dep) sch deps in
-        let c, eff = define_individual_scheme_base kind s f ~internal:true None ind eff in
-        let () = globally_declare_schemes eff in
-        Proofview.tclEFFECTS eff.sch_eff <*> Proofview.tclUNIT c
-      | s,MutualSchemeFunction (f, deps) ->
-        let env = Safe_typing.env_of_safe_env senv in
-        let deps = match deps with None -> [] | Some deps -> deps env mind in
-        let sch = empty_schemes senv in
-        let eff = List.fold_left (fun eff dep -> declare_scheme_dependence eff dep) sch deps in
-        let ca, eff = define_mutual_scheme_base kind s f ~internal:true [] mind eff in
-        let () = globally_declare_schemes eff in
-        Proofview.tclEFFECTS eff.sch_eff <*> Proofview.tclUNIT ca.(i)
-    with Rocqlib.NotFoundRef _ as e ->
-      let e, info = Exninfo.capture e in
-      Proofview.tclZERO ~info e
-
 let register_schemes sch =
   let iter (id, kn, loc, univs) =
     !register_definition_scheme ~internal:false ~name:id ~const:kn ~univs ?loc ()

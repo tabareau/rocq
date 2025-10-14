@@ -338,6 +338,14 @@ Definition bipcompmor {X Y Z : Bip} : BipMor X Y -> BipMor Y Z -> BipMor X Z :=
     end
   end.
 
+Definition paths_Has_Leibniz_elim_r : Has_Leibniz_r (@paths).
+  intros A x P t y e. now destruct e. Defined.
+Hint Resolve paths_Has_Leibniz_elim_r : rewrite_instances.
+
+Definition paths_Has_Leibniz_elim : Has_Leibniz (@paths).
+  intros A x P t y e. now destruct e. Defined.
+Hint Resolve paths_Has_Leibniz_elim : rewrite_instances.
+
 Definition isbipequiv {X Y : Bip} (i : BipMor X Y) : Type :=
   { l : BipMor Y X & bipcompmor i l = bipidmor } *
   { r : BipMor Y X & bipcompmor r i = bipidmor }.

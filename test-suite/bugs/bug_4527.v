@@ -10,6 +10,7 @@ Inductive False := .
 Axiom proof_admitted : False.
 Tactic Notation "admit" := case proof_admitted.
 Require Corelib.Init.Datatypes.
+Require Import Corelib.Init.Equality.
 Require Import Corelib.Init.Tactics.
 
 Import Corelib.Init.Notations.
@@ -231,6 +232,10 @@ Section ORecursion.
   := (fst (snd (extendable_to_O O two) g h) p).2 x.
 
 End ORecursion.
+
+Definition paths_Has_Leibniz_elim_r : Has_Leibniz_r (@paths).
+  intros A x P t y e. now destruct e. Defined.
+Hint Resolve paths_Has_Leibniz_elim_r : rewrite_instances.
 
 Section Reflective_Subuniverse.
   Universes Ou Oa.

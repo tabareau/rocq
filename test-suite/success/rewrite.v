@@ -63,8 +63,8 @@ Qed.
 
 Lemma l3:forall x (H:eq_true x) (P:forall x, eq_true x -> Type), P x H -> P x H.
 intros x H P H0.
-rewrite H.
-rewrite H in H0.
+Fail rewrite H.
+destruct H.
 assumption.
 Qed.
 

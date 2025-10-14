@@ -17,6 +17,17 @@ Class IsEquiv {A B : Type} (f : A -> B) := BuildIsEquiv {
 Notation "f ^-1" := (@equiv_inv _ _ f _) (at level 3).
 Axiom path_forall : forall {A : Type} {P : A -> Type} (f g : forall x : A, P x), (forall x, f x = g x) -> f = g.
 Axiom isequiv_adjointify : forall {A B} (f : A -> B) (g : B -> A) (isretr : Sect g f) (issect : Sect f g), IsEquiv f.
+
+Definition paths_Has_Leibniz_elim_r : Has_Leibniz_r (@paths).
+  intros A x P t y e. now destruct e. Defined.
+
+Hint Resolve paths_Has_Leibniz_elim_r : rewrite_instances.
+
+Definition paths_Has_Leibniz_elim : Has_Leibniz (@paths).
+  intros A x P t y e. now destruct e. Defined.
+
+Hint Resolve paths_Has_Leibniz_elim : rewrite_instances.
+
 Definition functor_forall `{P : A -> Type} `{Q : B -> Type} (f0 : B -> A) (f1 : forall b:B, P (f0 b) -> Q b)
 : (forall a:A, P a) -> (forall b:B, Q b) := (fun g b => f1 _ (g (f0 b))).
 Goal forall `{P : A -> Type} `{Q : B -> Type} `{IsEquiv B A f} `{forall b, @IsEquiv (P (f b)) (Q b) (g b)},

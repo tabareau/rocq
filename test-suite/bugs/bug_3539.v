@@ -7,6 +7,16 @@ Set Implicit Arguments.
 Inductive paths {A : Type} (a : A) : A -> Type := idpath : paths a a where "x = y" := (@paths _ x y) : type_scope.
 Arguments idpath {A a} , [A] a.
 Definition transport {A : Type} (P : A -> Type) {x y : A} (p : x = y) (u : P x) : P y := match p with idpath => u end.
+Definition paths_Has_Leibniz_elim_r : Has_Leibniz_r (@paths).
+  intros A x P t y e. now destruct e. Defined.
+
+Hint Resolve paths_Has_Leibniz_elim_r : rewrite_instances.
+
+Definition paths_Has_Leibniz_elim : Has_Leibniz (@paths).
+  intros A x P t y e. now destruct e. Defined.
+
+Hint Resolve paths_Has_Leibniz_elim : rewrite_instances.
+
 Local Set Primitive Projections.
 Record prod (A B : Type) := pair { fst : A ; snd : B }.
 Notation "x * y" := (prod x y) : type_scope.

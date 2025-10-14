@@ -8,6 +8,12 @@ Module File1.
 
       Notation "x = y :> A" := (@paths A x y) : type_scope.
       Notation "x = y" := (x = y :>_) : type_scope.
+
+  Definition paths_Has_Leibniz_elim : Has_Leibniz (@paths)
+    := fun A x P => @paths_rect A x (fun y _ => P y).
+
+  Hint Resolve paths_Has_Leibniz_elim : rewrite_instances.
+
     End A.
   End DirA.
 End File1.
@@ -39,7 +45,7 @@ Module File3.
         constructor.
       Defined.
       Definition bar'
-        := Eval cbv beta iota zeta delta [bar internal_paths_rew] in bar.
+        := Eval cbv beta iota zeta delta [bar] in bar.
     End C.
   End DirA.
 End File3.

@@ -113,6 +113,16 @@ Parameter D : PreCategory.
 Parameter F : Functor C D.
 Parameter G : Functor D C.
 
+Definition paths_Has_Leibniz_elim_r : Has_Leibniz_r (@paths).
+  intros A x P t y e. now destruct e. Defined.
+
+Hint Resolve paths_Has_Leibniz_elim_r : rewrite_instances.
+
+Definition paths_Has_Leibniz_elim : Has_Leibniz (@paths).
+  intros A x P t y e. now destruct e. Defined.
+
+Hint Resolve paths_Has_Leibniz_elim : rewrite_instances.
+
 Definition zig__of__adjunction_unit
            (A : AdjunctionUnit F G)
            (Y : C)

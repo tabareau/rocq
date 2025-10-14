@@ -389,22 +389,9 @@ let pirrel_rewrite ?(under=false) ?(map_redex=id_map_redex) pred rdx rdx_ty c_qu
   let sigma, new_rdx = map_redex env sigma ~before:rdx ~after:new_rdx in
   let sigma, elim =
     let p_quality = ESorts.quality sigma (Retyping.get_sort_of env sigma (Proofview.Goal.concl gl)) in
-    let elim =
-      Equality.eq_eliminator env sigma eq (Some (dir = L2R)) ~c_quality ~e_quality ~p_quality
-    in match elim with
-    | Some ((sigma, elim),_) ->
-      debug_ssr Pp.(fun () -> str"elim=" ++ pr_econstr_env env sigma elim);
+    let ((sigma, elim),_) = Equality.eq_eliminator env sigma eq (Some (dir = L2R)) ~c_quality ~e_quality ~p_quality
+    in debug_ssr Pp.(fun () -> str"elim=" ++ pr_econstr_env env sigma elim);
       sigma, elim
-    | None ->
-      let ((kn, i) as ind, _) = Tacred.eval_to_quantified_ind env sigma c_ty in
-      let sort = Tacticals.elimination_sort_of_goal gl in
-      let sigma, elim = Evd.fresh_global env sigma (Elimschemes.lookup_eliminator env ind sort) in
-      if dir = R2L then sigma, elim else
-      let elim, _ = EConstr.destConst sigma elim in
-      let mp,l = KerName.repr (Constant.canonical elim) in
-      let l' = Label.of_id (Nameops.add_suffix (Label.to_id l) "_r")  in
-      let c1' = Global.constant_of_delta_kn (Constant.canonical (Constant.make2 mp l')) in
-      Evd.fresh_global env sigma (ConstRef c1')
   in
   (* The resulting goal *)
   let evty = beta (EConstr.Vars.subst1 new_rdx pred) in

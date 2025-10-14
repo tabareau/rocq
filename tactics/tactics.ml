@@ -1274,6 +1274,8 @@ type eliminator =
 | ElimClause of EConstr.constr with_bindings
   (* Arbitrary expression provided by the user *)
 
+  let dbg = CDebug.create ~name:"general_elim" ()
+
 let general_elim_clause0 with_evars flags (submetas, c, ty) elim =
   Proofview.Goal.enter begin fun gl ->
   let env = Proofview.Goal.env gl in
@@ -1297,10 +1299,9 @@ let general_elim_clause0 with_evars flags (submetas, c, ty) elim =
     with Failure _ | Invalid_argument _ -> TacticErrors.ill_formed_elimination_type ()
   in
   let elimclause = clenv_instantiate ~flags ~submetas indmv elimclause (c, ty) in
+  let _ = dbg (fun () -> Printer.pr_econstr_env env sigma ty) in
   Clenv.res_pf elimclause ~with_evars ~with_classes:true ~flags
   end
-
-let dbg = CDebug.create ~name:"general_elim" ()
 
 let general_elim_clause_in0 with_evars flags id (submetas, c, ty) elimc indarg =
   Proofview.Goal.enter begin fun gl ->

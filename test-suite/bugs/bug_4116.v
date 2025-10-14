@@ -339,6 +339,10 @@ Lemma isotoid_1 {C} `{IsCategory C} {x : C} {H : IsIsomorphism (identity x)}
 Defined.
 Generalizable All Variables.
 
+Definition paths_Has_Leibniz_elim_r : Has_Leibniz_r@{Prop Prop Prop;Set Set Set} (@paths).
+  intros A x P t y e. now destruct e. Defined.
+Hint Resolve paths_Has_Leibniz_elim_r : rewrite_instances.
+
 Section Grothendieck2.
   Context `{IsCategory C}.
   Variable F : Functor C set_cat.

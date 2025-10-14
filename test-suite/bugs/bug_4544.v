@@ -7,6 +7,7 @@ Inductive False := .
 Axiom proof_admitted : False.
 Tactic Notation "admit" := case proof_admitted.
 Require Corelib.Init.Datatypes.
+Require Import Corelib.Init.Equality.
 
 Import Corelib.Init.Notations.
 
@@ -307,6 +308,14 @@ Definition isequiv_commsq {A B C D}
 : IsEquiv g.
 admit.
 Defined.
+
+Definition paths_Has_Leibniz_elim_r : Has_Leibniz_r (@paths).
+  intros A x P t y e. destruct e; assumption. Defined.
+Hint Resolve paths_Has_Leibniz_elim_r : rewrite_instances.
+
+Definition paths_Has_Leibniz_elim : Has_Leibniz (@paths) :=
+  fun A x P => @paths_rect A x (fun y _ => P y) .
+Hint Resolve paths_Has_Leibniz_elim : rewrite_instances.
 
 Section Adjointify.
 

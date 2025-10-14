@@ -22,6 +22,16 @@ Infix "<->" := iff : type_scope.
 Inductive paths {A : Type@{i}} (a : A) : A -> Type@{i} := idpath : paths a a where "x = y" := (@paths _ x y) : type_scope.
 Class Contr_internal (A : Type) := { center : A ; contr : (forall y : A, center
 = y) }.
+Definition paths_Has_Leibniz_elim_r : Has_Leibniz_r (@paths).
+  intros A x P t y e. now destruct e. Defined.
+
+Hint Resolve paths_Has_Leibniz_elim_r : rewrite_instances.
+
+Definition paths_Has_Leibniz_elim : Has_Leibniz (@paths).
+  intros A x P t y e. now destruct e. Defined.
+
+Hint Resolve paths_Has_Leibniz_elim : rewrite_instances.
+
 Inductive trunc_index : Type := minus_two | trunc_S (_ : trunc_index).
 Fixpoint IsTrunc_internal (n : trunc_index) (A : Type@{i}) : Type@{i} :=
  match n with

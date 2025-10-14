@@ -14,11 +14,13 @@ Proof. destruct e. assumption. Qed.
 
 (* rewriting is now based on typeclasses defined in Corelib.Init.Equality.v *)
 
-Instance rename_EQ_Leibniz_elim : Has_Leibniz (@EQ)
+Definition rename_EQ_Leibniz_elim : Has_Leibniz (@EQ)
   := @renamed_EQ_rect.
+Hint Resolve rename_EQ_Leibniz_elim : rewrite_instances.
 
-Instance rename_EQ_Leibniz_r_elim : Has_Leibniz_r (@EQ)
+Definition rename_EQ_Leibniz_r_elim : Has_Leibniz_r (@EQ)
   := @renamed_EQ_rect_r.
+Hint Resolve rename_EQ_Leibniz_r_elim : rewrite_instances.
 
 Lemma EQ_sym1 {A} {x y : A} (e : EQ x y) : EQ y x.
 Proof. rewrite e. reflexivity. Qed.

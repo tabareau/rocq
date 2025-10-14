@@ -39,6 +39,11 @@ Definition path_forall `{Funext} {A : Type} {P : A -> Type} (f g : forall x : A,
 Inductive Unit : Set :=
   tt : Unit.
 
+Definition paths_Has_Leibniz_r_elim : Has_Leibniz_r@{Type Type Type; _ _ _} (@paths).
+  intros A x P t y e. now destruct e. Defined.
+
+Hint Resolve paths_Has_Leibniz_r_elim : rewrite_instances.
+
 Definition path_prod_uncurried {A B : Type} (z z' : A * B)
            (pq : (fst z = fst z') * (snd z = snd z'))
 : (z = z')

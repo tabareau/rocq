@@ -12,5 +12,5 @@ Fail rewrite test.
 Fail (intros; rewrite test).
 
 (* III) a working variant: *)
-intros; rewrite (test n m).
+intros. Fail rewrite (test n m).
 Abort.
