@@ -29,9 +29,9 @@ type conditions =
 
 val eq_eliminator : Environ.env -> Evd.evar_map -> Evd.econstr ->
   ?dep:orientation -> ?inccl:orientation -> orientation option ->
-  c_quality:Sorts.Quality.t ->
-  e_quality:Sorts.Quality.t ->
-  p_quality:Sorts.Quality.t ->
+  c_sort:ESorts.t ->
+  e_sort:ESorts.t ->
+  p_sort:ESorts.t ->
   (Evd.evar_map * Evd.econstr) * equality_position_on_elim
 
 (* Equivalent to [general_rewrite l2r] *)

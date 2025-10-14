@@ -15,7 +15,6 @@ open Util
 open Names
 open Constr
 open Context
-open EConstr
 open Locus
 open Printer
 open Termops
@@ -379,7 +378,8 @@ let id_map_redex _ sigma ~before:_ ~after = sigma, after
     ⊢ c : c_ty
     ⊢ c_ty ≡ EQN rdx_ty rdx new_rdx
 *)
-let pirrel_rewrite ?(under=false) ?(map_redex=id_map_redex) pred rdx rdx_ty c_quality new_rdx dir (sigma, c) c_ty eq e_quality =
+
+let pirrel_rewrite ?(under=false) ?(map_redex=id_map_redex) pred rdx rdx_ty c_sort new_rdx dir (sigma, c) c_ty eq e_sort =
   let open Tacmach in
   let open Tacticals in
   Proofview.Goal.enter begin fun gl ->
@@ -388,8 +388,8 @@ let pirrel_rewrite ?(under=false) ?(map_redex=id_map_redex) pred rdx rdx_ty c_qu
   let beta = Reductionops.clos_norm_flags RedFlags.beta env sigma in
   let sigma, new_rdx = map_redex env sigma ~before:rdx ~after:new_rdx in
   let sigma, elim =
-    let p_quality = ESorts.quality sigma (Retyping.get_sort_of env sigma (Proofview.Goal.concl gl)) in
-    let ((sigma, elim),_) = Equality.eq_eliminator env sigma eq (Some (dir = L2R)) ~c_quality ~e_quality ~p_quality
+    let p_sort = Retyping.get_sort_of env sigma (Proofview.Goal.concl gl) in
+    let ((sigma, elim),_) = Equality.eq_eliminator env sigma eq (Some (dir = L2R)) ~c_sort ~e_sort ~p_sort
     in debug_ssr Pp.(fun () -> str"elim=" ++ pr_econstr_env env sigma elim);
       sigma, elim
   in
@@ -482,9 +482,9 @@ let rwcltac ?under ?map_redex cl rdx dir (sigma, r) =
       match kind_of_type sigma (Reductionops.whd_all env sigma c_ty) with
       | AtomicType(e, a) when Ssrcommon.is_ind_ref env sigma e c_eq ->
           let new_rdx = if dir = L2R then a.(2) else a.(1) in
-          let e_quality = EConstr.ESorts.quality sigma (Retyping.get_sort_of env sigma c_ty) in
-          let c_quality = EConstr.ESorts.quality sigma (Retyping.get_sort_of env sigma a.(0)) in
-          pirrel_rewrite ?under ?map_redex cl rdx a.(0) c_quality new_rdx dir (sigma, r) c_ty e e_quality, Tacticals.tclIDTAC, sigma0
+          let e_sort = Retyping.get_sort_of env sigma c_ty in
+          let c_sort = Retyping.get_sort_of env sigma a.(0) in
+          pirrel_rewrite ?under ?map_redex cl rdx a.(0) c_sort new_rdx dir (sigma, r) c_ty e e_sort, Tacticals.tclIDTAC, sigma0
       | _ ->
           let cl' = EConstr.mkApp (EConstr.mkNamedLambda sigma (make_annot pattern_id ERelevance.relevant) rdxt cl, [|rdx|]) in
           let sigma, _ = Typing.type_of env sigma cl' in

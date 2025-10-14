@@ -1,6 +1,7 @@
 Polymorphic Inductive path {A : Type} (x : A) : A -> Type :=
   refl : path x x.
 
+#[universes(polymorphic)]
 Definition path_Has_Leibniz_r_elim@{l l' l''} : Has_Leibniz_r@{Type Type Type | l l' l''} (@path@{l l'}).
 intros A x P t y e. now destruct e.
 Defined.

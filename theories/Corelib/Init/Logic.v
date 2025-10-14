@@ -408,89 +408,91 @@ Register eq_rect as core.eq.rect.
 (* Those instances already exist *)
 (* Not that we duplicate sort polymorphic definitions for backward compatibility *)
 
-Instance eq_Has_Prop_refl : Has_refl@{Prop Prop;Set Set} (@eq)
+Instance eq_Has_Prop_refl : Has_refl@{Prop Prop;Set Set} (fun A => @eq A)
   := @eq_refl.
 
 #[universes(polymorphic)]
-Instance eq_Has_refl@{l} : Has_refl@{Type Prop;l Set} (@eq)
-  := @eq_refl.
+Instance eq_Has_refl@{l} : Has_refl@{Type Prop;l Set} (fun a => @eq a)
+  := fun A => @eq_refl A.
 
 #[universes(polymorphic)]
-Instance eq_Has_Leibniz_Prop_elim@{l} : Has_Leibniz@{Prop Prop Type;Set Set l} (@eq)
-  := @eq_rect.
+Instance eq_Has_Leibniz_Prop_elim@{l} : Has_Leibniz@{Prop Prop Type;Set Set l} (fun a => @eq a)
+  := fun A x P => @eq_rect A x P.
 
 Hint Resolve eq_Has_Leibniz_Prop_elim : rewrite_instances.
 
 #[universes(polymorphic)]
-Instance eq_Has_Leibniz_elim@{l l'} : Has_Leibniz@{Type Prop Type;l Set l'} (@eq)
-  := @eq_rect.
+Instance eq_Has_Leibniz_elim@{l l'} : Has_Leibniz@{Type Prop Type;l Set l'} (fun a => @eq a)
+  := fun A x P => @eq_rect A x P.
 
 Hint Resolve eq_Has_Leibniz_elim : rewrite_instances.
 
-Instance eq_Has_Leibniz_Prop_elimP : Has_Leibniz@{Prop Prop Prop;Set Set Set} (@eq)
+Instance eq_Has_Leibniz_Prop_elimP : Has_Leibniz@{Prop Prop Prop;Set Set Set} (fun a => @eq a)
   := @eq_ind.
 
 Hint Resolve eq_Has_Leibniz_Prop_elimP : rewrite_instances.
 
 #[universes(polymorphic)]
-Instance eq_Has_Leibniz_elimP@{l} : Has_Leibniz@{Type Prop Prop;l Set Set} (@eq)
-  := @eq_ind.
+Instance eq_Has_Leibniz_elimP@{l} : Has_Leibniz@{Type Prop Prop;l Set Set} (fun A => @eq A)
+  := fun A => @eq_ind A.
 
 Hint Resolve eq_Has_Leibniz_elimP : rewrite_instances.
 
-Instance eq_Has_Leibniz_Prop_elimSP : Has_Leibniz@{Prop Prop SProp;Set Set Set} (@eq)
+Instance eq_Has_Leibniz_Prop_elimSP : Has_Leibniz@{Prop Prop SProp;Set Set Set} (fun a => @eq a)
   := @eq_sind.
 
 Hint Resolve eq_Has_Leibniz_Prop_elimSP : rewrite_instances.
 
 #[universes(polymorphic)]
-Instance eq_Has_Leibniz_elimSP@{l} : Has_Leibniz@{Type Prop SProp;l Set Set} (@eq)
-  := @eq_sind.
+Instance eq_Has_Leibniz_elimSP@{l} : Has_Leibniz@{Type Prop SProp;l Set Set} (fun a => @eq a)
+  := fun A => @eq_sind A.
 
 Hint Resolve eq_Has_Leibniz_elimSP : rewrite_instances.
 
 (* Those instance were defined using internally generated scheme *)
 
+#[universes(polymorphic)]
 Definition eq_rect_dep {A:Type} (x : A) (P : forall y : A, x = y -> Type) :
 P x eq_refl -> forall y e , P y e.
 intros t y e. destruct e. assumption.
 Defined.
 
+#[universes(polymorphic)]
 Definition eq_sind_dep {A:Type} (x : A) (P : forall y : A, x = y -> SProp) :
 P x eq_refl -> forall y e , P y e.
 intros t y e. destruct e. assumption.
 Defined.
 
 #[universes(polymorphic)]
-Instance eq_Has_J_Prop_elim@{l} : Has_J@{Prop Prop Type ; Set Set l} (@eq) _ :=
+Instance eq_Has_J_Prop_elim@{l} : Has_J@{Prop Prop Type ; Set Set l} (fun a => @eq a) _ :=
   @eq_rect_dep.
 
 Hint Resolve eq_Has_J_Prop_elim : rewrite_instances.
 
-Instance eq_Has_J_Prop_elimP : Has_J@{Prop Prop Prop ; Set Set Set} (@eq) _ :=
+Instance eq_Has_J_Prop_elimP : Has_J@{Prop Prop Prop ; Set Set Set} (fun a => @eq a) _ :=
   @eq_rect_dep.
 
 Hint Resolve eq_Has_J_Prop_elimP : rewrite_instances.
 
 #[universes(polymorphic)]
-Instance eq_Has_J_elim@{l l'} : Has_J@{Type Prop Type ; l Set l'} (@eq) _ :=
+Instance eq_Has_J_elim@{l l'} : Has_J@{Type Prop Type ; l Set l'} (fun a => @eq a) _ :=
   @eq_rect_dep.
 
 Hint Resolve eq_Has_J_elim : rewrite_instances.
 
 #[universes(polymorphic)]
-Instance eq_Has_J_elimP@{l} : Has_J@{Type Prop Prop ; l Set Set} (@eq) _ :=
+Instance eq_Has_J_elimP@{l} : Has_J@{Type Prop Prop ; l Set Set} (fun a => @eq a) _ :=
   @eq_rect_dep.
 
 Hint Resolve eq_Has_J_elimP : rewrite_instances.
 
-Instance eq_Has_J_Prop_elimSP : Has_J@{Prop Prop SProp ; Set Set Set} (@eq) _ :=
+Instance eq_Has_J_Prop_elimSP : Has_J@{Prop Prop SProp ; Set Set Set} (fun a => @eq a) _ :=
   @eq_sind_dep.
 
 Hint Resolve eq_Has_J_Prop_elimSP : rewrite_instances.
 
 #[universes(polymorphic)]
-Instance eq_Has_J_elimSP@{l} : Has_J@{Type Prop SProp ; l Set Set} (@eq) _ :=
+Instance eq_Has_J_elimSP@{l} : Has_J@{Type Prop SProp ; l Set Set} (fun a => @eq a) _ :=
   @eq_sind_dep.
 
 Hint Resolve eq_Has_J_elimSP : rewrite_instances.
@@ -569,53 +571,56 @@ End Logic_lemmas.
 Abbreviation eq_rec_r := eq_rect_r.
 
 #[universes(polymorphic)]
-Instance eq_Has_Leibniz_r_Prop_elim@{l} : Has_Leibniz_r@{Prop Prop Type;Set Set l} (@eq)
-  := @eq_rect_r.
+Instance eq_Has_Leibniz_r_Prop_elim@{l} : Has_Leibniz_r@{Prop Prop Type;Set Set l} (fun a => @eq a)
+  := fun A x P => @eq_rect_r A x P.
 
 Hint Resolve eq_Has_Leibniz_r_Prop_elim : rewrite_instances.
 
 #[universes(polymorphic)]
-Instance eq_Has_Leibniz_r_elim@{l l'} : Has_Leibniz_r@{Type Prop Type;l Set l'} (@eq)
-  := @eq_rect_r.
+Instance eq_Has_Leibniz_r_elim@{l l'} : Has_Leibniz_r@{Type Prop Type;l Set l'} (fun a => @eq a)
+  := fun A x P => @eq_rect_r A x P.
 
 Hint Resolve eq_Has_Leibniz_r_elim : rewrite_instances.
 
-Instance eq_Has_Leibniz_r_Prop_elimP : Has_Leibniz_r@{Prop Prop Prop;Set Set Set} (@eq)
+Instance eq_Has_Leibniz_r_Prop_elimP : Has_Leibniz_r@{Prop Prop Prop;Set Set Set} (fun a => @eq a)
   := @eq_ind_r.
 
 Hint Resolve eq_Has_Leibniz_r_Prop_elimP : rewrite_instances.
 
 #[universes(polymorphic)]
-Instance eq_Has_Leibniz_r_elimP@{l} : Has_Leibniz_r@{Type Prop Prop;l Set Set} (@eq)
-  := @eq_ind_r.
+Instance eq_Has_Leibniz_r_elimP@{l} : Has_Leibniz_r@{Type Prop Prop;l Set Set} (fun a => @eq a)
+  := fun A x P => @eq_ind_r A x P.
 
 Hint Resolve eq_Has_Leibniz_r_elimP : rewrite_instances.
 
-Instance eq_Has_Leibniz_r_Prop_elimSP : Has_Leibniz_r@{Prop Prop SProp;Set Set Set} (@eq)
+Instance eq_Has_Leibniz_r_Prop_elimSP : Has_Leibniz_r@{Prop Prop SProp;Set Set Set} (fun a => @eq a)
   := @eq_sind_r.
 
 Hint Resolve eq_Has_Leibniz_r_Prop_elimSP : rewrite_instances.
 
 #[universes(polymorphic)]
-Instance eq_Has_Leibniz_r_elimSP@{l} : Has_Leibniz_r@{Type Prop SProp;l Set Set} (@eq)
-  := @eq_sind_r.
+Instance eq_Has_Leibniz_r_elimSP@{l} : Has_Leibniz_r@{Type Prop SProp;l Set Set} (fun a => @eq a)
+  := fun A x P => @eq_sind_r A x P.
 
 Hint Resolve eq_Has_Leibniz_r_elimSP : rewrite_instances.
 
 (* Those instance were defined using internally generated scheme *)
 
+#[universes(polymorphic)]
 Definition eq_rect_r_dep {A:Type} (x : A) (P : forall y : A, y = x -> Type)
   : P x eq_refl -> forall y e , P y e.
   intros t y e. rewrite <- (eq_sym_involutive e).
   exact (J_eliminator A x (fun y e => P y (eq_sym e)) t y (eq_sym e)).
 Defined.
 
+#[universes(polymorphic)]
 Definition eq_ind_r_dep {A:Type} (x : A) (P : forall y : A, y = x -> Prop)
   : P x eq_refl -> forall y e , P y e.
   intros t y e. rewrite <- (eq_sym_involutive e).
   exact (J_eliminator A x (fun y e => P y (eq_sym e)) t y (eq_sym e)).
 Defined.
 
+#[universes(polymorphic)]
 Definition eq_sind_r_dep {A:Type} (x : A) (P : forall y : A, y = x -> SProp)
   : P x eq_refl -> forall y e , P y e.
   intros t y e. rewrite <- (eq_sym_involutive e).
@@ -623,35 +628,35 @@ Definition eq_sind_r_dep {A:Type} (x : A) (P : forall y : A, y = x -> SProp)
 Defined.
 
 #[universes(polymorphic)]
-Instance eq_Has_J_r_Prop_elim@{l} : Has_J_r@{Prop Prop Type ; Set Set l} (@eq) _
+Instance eq_Has_J_r_Prop_elim@{l} : Has_J_r@{Prop Prop Type ; Set Set l} (fun a => @eq a) _
   := @eq_rect_r_dep.
 
 Hint Resolve eq_Has_J_r_Prop_elim : rewrite_instances.
 
-Instance eq_Has_J_r_Prop_elimP : Has_J_r@{Prop Prop Prop ; Set Set Set} (@eq) _
+Instance eq_Has_J_r_Prop_elimP : Has_J_r@{Prop Prop Prop ; Set Set Set} (fun a => @eq a) _
   := @eq_ind_r_dep.
 
 Hint Resolve eq_Has_J_r_Prop_elimP : rewrite_instances.
 
 #[universes(polymorphic)]
-Instance eq_Has_J_r_elim@{l l'} : Has_J_r@{Type Prop Type; l Set l'} (@eq) _
+Instance eq_Has_J_r_elim@{l l'} : Has_J_r@{Type Prop Type; l Set l'} (fun a => @eq a) _
   := @eq_rect_r_dep.
 
 Hint Resolve eq_Has_J_r_elim : rewrite_instances.
 
 #[universes(polymorphic)]
-Instance eq_Has_J_r_elimP@{l} : Has_J_r@{Type Prop Prop ; l Set Set} (@eq) _
+Instance eq_Has_J_r_elimP@{l} : Has_J_r@{Type Prop Prop ; l Set Set} (fun a => @eq a) _
  := @eq_ind_r_dep.
 
 Hint Resolve eq_Has_J_r_elimP : rewrite_instances.
 
 #[universes(polymorphic)]
-Instance eq_Has_J_r_elimSP@{l} : Has_J_r@{Type Prop SProp ; l Set Set} (@eq) _
+Instance eq_Has_J_r_elimSP@{l} : Has_J_r@{Type Prop SProp ; l Set Set} (fun a => @eq a) _
   := @eq_sind_r_dep.
 
 Hint Resolve eq_Has_J_r_elimSP : rewrite_instances.
 
-Instance eq_Has_J_r_Prop_elimSP : Has_J_r@{Prop Prop SProp ; Set Set Set} (@eq) _
+Instance eq_Has_J_r_Prop_elimSP : Has_J_r@{Prop Prop SProp ; Set Set Set} (fun a => @eq a) _
   := @eq_sind_r_dep.
 
 Hint Resolve eq_Has_J_r_Prop_elimSP : rewrite_instances.

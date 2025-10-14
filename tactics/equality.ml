@@ -83,8 +83,6 @@ type conditions =
    -- Eduardo (19/8/97)
 *)
 
-(* let dbg = CDebug.create ~name:"rewrite" ()
- *)
 let rewrite_core_unif_flags = {
   modulo_conv_on_closed_terms = None;
   use_metas_eagerly_in_conv_on_closed_terms = true;
@@ -329,29 +327,39 @@ let has_J_ref dep lft2rgt inccl =
     | true, _, true -> Rocqlib.lib_ref "rocq.core.Has_J" , 5
     | true, _, false -> Rocqlib.lib_ref "rocq.core.Has_J_forward" , 4
 
-let level_init n sigma =
-  let rec aux n sigma =
-    match n with
-    | 0 -> sigma , []
-    | n -> let sigma , new_level = Evd.new_univ_level_variable UState.univ_flexible sigma in
-      let sigma , r = aux (pred n) sigma in
+let level_init l sigma =
+  let rec aux l sigma =
+    match l with
+    | [] -> sigma , []
+    | levels :: ls ->
+      let sigma , new_level = begin
+          match Univ.Universe.level levels with
+          | Some level -> (sigma , level)
+          | None -> Evd.new_univ_level_variable UState.univ_flexible sigma
+      end in
+      let sigma , r = aux ls sigma in
       sigma , new_level :: r
-in aux n sigma
+in aux l sigma
 
-let lookup_eq_eliminator env sigma eq ~dep ~inccl ~l2r ~e_quality ~c_quality ~p_quality =
+let lookup_eq_eliminator env sigma eq ~dep ~inccl ~l2r ~e_sort ~c_sort ~p_sort =
   let has_elim_ref , indarg = has_J_ref dep l2r inccl in
   let has_refl_ref = Rocqlib.lib_ref "rocq.core.Has_refl" in
-  let sigma , univs = level_init 3 sigma in
+  let c_quality = ESorts.quality sigma c_sort in
+  let e_quality = ESorts.quality sigma e_sort in
+  let p_quality = ESorts.quality sigma p_sort in
   let qs = [ c_quality; e_quality; p_quality ] in
+  let c_level = Sorts.univ_of_sort (ESorts.kind sigma c_sort) in
+  let e_level = Sorts.univ_of_sort (ESorts.kind sigma e_sort) in
+  let p_level = Sorts.univ_of_sort (ESorts.kind sigma p_sort) in
+  let sigma , univs = level_init [ c_level; e_level; p_level ] sigma in
   let names = EInstance.make @@ UVars.Instance.of_array (Array.of_list qs, Array.of_list univs) in
   let eta_expanse name typ f =
       let body = EConstr.mkApp (Vars.lift 1 f , [| mkRel 1 |] ) in
       EConstr.mkLambda (EConstr.nameR name, typ , body)
   in
   (* This patch is to handle template poly equality with carrier in Prop, because of cumulatitivty of Prop into Type *)
-  let eq = if Sorts.Quality.is_qprop e_quality && Sorts.Quality.is_qprop c_quality
-           then eta_expanse (Id.of_string "A") EConstr.mkProp eq
-           else eq in
+  let c_type = EConstr.mkSort (ESorts.make (Sorts.make c_quality (Univ.Universe.make (List.hd univs)))) in
+  let eq = eta_expanse (Id.of_string "A") c_type eq in
   let sigma , has_J_class = Evd.fresh_global ~names env sigma has_elim_ref in
   if dep then
     let has_refl_names =
@@ -368,9 +376,9 @@ let lookup_eq_eliminator env sigma eq ~dep ~inccl ~l2r ~e_quality ~c_quality ~p_
     (sigma , (app, AtPosition indarg))
 
 let lookup_eq_eliminator_gen env sigma eq
-  ~dep ~inccl ~l2r ~c_quality ~e_quality ~p_quality =
+  ~dep ~inccl ~l2r ~c_sort ~e_sort ~p_sort =
   let sigma, (query,indarg) = lookup_eq_eliminator env sigma eq
-      ~dep ~inccl ~l2r ~c_quality ~e_quality ~p_quality in
+      ~dep ~inccl ~l2r ~c_sort ~e_sort ~p_sort in
   try
     let db = Hints.searchtable_map rewrite_db in
     let (sigma , c) = Class_tactics.resolve_one_typeclass ~db env sigma query in
@@ -380,12 +388,12 @@ let lookup_eq_eliminator_gen env sigma eq
     ((sigma , c), indarg)
   with Not_found -> user_err Pp.(
       str "Eliminator not found for query " ++ Printer.pr_econstr_env env sigma query ++
-      str " with equality carrier: " ++ Sorts.Quality.raw_pr e_quality ++
-      str " carrier quality: " ++ Sorts.Quality.raw_pr c_quality ++
-      str " target quality: " ++ Sorts.Quality.raw_pr p_quality)
+      str " with equality carrier: " ++ Sorts.raw_pr (ESorts.kind sigma e_sort) ++
+      str " carrier quality: " ++ Sorts.raw_pr (ESorts.kind sigma c_sort) ++
+      str " target quality: " ++ Sorts.raw_pr (ESorts.kind sigma p_sort))
 
-let eq_eliminator env sigma eq ?(dep=false) ?(inccl=true) l2r ~c_quality ~e_quality ~p_quality =
-  lookup_eq_eliminator_gen env sigma eq ~dep ~inccl ~l2r ~e_quality ~c_quality ~p_quality
+let eq_eliminator env sigma eq ?(dep=false) ?(inccl=true) l2r ~c_sort ~e_sort ~p_sort =
+  lookup_eq_eliminator_gen env sigma eq ~dep ~inccl ~l2r ~e_sort ~c_sort ~p_sort
 
 (* find_elim determines which elimination principle is necessary to
    eliminate lbeq on sort_of_gl. *)
@@ -399,18 +407,18 @@ let find_elim lft2rgt dep cls (ctx, hdcncl, args) =
   then
     let env' = EConstr.push_rel_context ctx env in
     let args = Array.of_list args in
-    let e_quality = ESorts.quality sigma (Retyping.get_sort_of env' sigma (mkApp (hdcncl, args))) in
-    let c_quality = ESorts.quality sigma (Retyping.get_sort_of env' sigma args.(0)) in
-    let p_quality = match cls with
+    let e_sort = Retyping.get_sort_of env' sigma (mkApp (hdcncl, args)) in
+    let c_sort = Retyping.get_sort_of env' sigma args.(0) in
+    let p_sort = match cls with
       | None ->
-          ESorts.quality sigma (Retyping.get_sort_of env sigma (Proofview.Goal.concl gl))
+          Retyping.get_sort_of env sigma (Proofview.Goal.concl gl)
       | Some id -> begin
           let hyp = mkVar id in
           let hyp_typ = Retyping.get_type_of env sigma hyp in
-          ESorts.quality sigma (Retyping.get_sort_of env sigma hyp_typ)
+          Retyping.get_sort_of env sigma hyp_typ
         end
     in
-    let ((sigma, c),indarg) = eq_eliminator env sigma hdcncl ~dep ~inccl lft2rgt ~c_quality ~e_quality ~p_quality in
+    let ((sigma, c),indarg) = eq_eliminator env sigma hdcncl ~dep ~inccl lft2rgt ~c_sort ~e_sort ~p_sort in
     Proofview.Unsafe.tclEVARS sigma <*> Proofview.tclUNIT (c,indarg)
 
   else user_err Pp.(str "rewriting on non-symmetric equality not supported")
@@ -779,7 +787,7 @@ let set_keep_equality = KeepEqualitiesTable.set
 
 let keep_head_inductive sigma c =
   (* Note that we do not weak-head normalize c before checking it is an
-     applied inductive, because [get_sort_quality_of] did not use to either.
+     applied inductive, because [get_sort_sort_of] did not use to either.
      As a matter of fact, if it reduces to an applied template inductive
      type but is not syntactically equal to it, it will fail to project. *)
   let _, hd = EConstr.decompose_prod sigma c in
@@ -1032,16 +1040,16 @@ let gen_absurdity id =
           absurd_term=False
 *)
 
-let discrimination_pf e (eq,_,s,(t,t1,t2)) discriminator p_quality =
+let discrimination_pf e (eq,_,s,(t,t1,t2)) discriminator p_sort =
   build_rocq_I () >>= fun i ->
   Proofview.Goal.enter_one begin fun gl ->
     let env = Proofview.Goal.env gl in
     let sigma = Proofview.Goal.sigma gl in
     let ((sigma, c),_) = lookup_eq_eliminator_gen env sigma eq
       ~dep:false ~inccl:true ~l2r:(Some false)
-      ~e_quality:(ESorts.quality sigma s)
-      ~c_quality:(ESorts.quality sigma (Retyping.get_sort_of env sigma t))
-      ~p_quality in
+      ~e_sort:s
+      ~c_sort:(Retyping.get_sort_of env sigma t)
+      ~p_sort in
     Proofview.Unsafe.tclEVARS sigma <*> Proofview.tclUNIT c >>= fun eq_elim ->
     Proofview.tclEVARMAP >>= fun sigma ->
     let term =
@@ -1066,7 +1074,7 @@ let discr_positions env sigma { eq_data = (_, _ , s, (t, _, _)) as eq_data; eq_t
   build_rocq_True () >>= fun true_0 ->
   build_rocq_False () >>= fun false_0 ->
   let false_ty = Retyping.get_type_of env sigma false_0 in
-  let false_kind = ESorts.quality sigma (Retyping.get_sort_of env sigma false_0) in
+  let false_kind = Retyping.get_sort_of env sigma false_0 in
   let e = next_ident_away eq_baseid (vars_of_env env) in
   let e_env = push_named (Context.Named.Declaration.LocalAssum (make_annot e ERelevance.relevant,t)) env in
 
